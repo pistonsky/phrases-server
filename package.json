@@ -1,0 +1,27 @@
+{
+  "name": "phrases-server",
+  "version": "0.1.0",
+  "description": "Node server for the Phrases mobile app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pistonsky/phrases-server.git"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "server",
+    "audio",
+    "sound",
+    "storage"
+  ],
+  "author": "Aleksandr Tsygankov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pistonsky/phrases-server/issues"
+  },
+  "homepage": "https://github.com/pistonsky/phrases-server#readme"
+}

@@ -5,9 +5,7 @@ var router = express.Router();
 
 /* POST saveblog router. */
 router.post('/upload', upload.any(), function(req, res, next) {
-  console.log(req.body, 'Body');
-  console.log(req.files, 'files');
-  res.end();
+  res.json(req.files);
 });
 
 module.exports = router;

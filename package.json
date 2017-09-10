@@ -27,7 +27,8 @@
   "homepage": "https://github.com/pistonsky/phrases-server#readme",
   "dependencies": {
     "express": "^4.15.4",
-    "multer": "^1.3.0"
+    "multer": "^1.3.0",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "nodemon": "^1.11.0",

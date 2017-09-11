@@ -8,16 +8,18 @@ require('./models/Phrases');
 mongoose.connect(config.mongoURI);
 const Phrase = mongoose.model('phrases');
 
-router.get('/', async function(req, res) {
-  const phrases = await Phrase.find({ user_id: req.query.user_id });
-  res.send(
-    phrases.map(item => {
-      return Object.assign({ id: item._id }, item._doc);
-    })
-  );
+router.get('/', function(req, res) {
+  Phrase.find({ user_id: req.query.user_id })
+    .then(function(phrases) {
+      res.send(
+        phrases.map(item => {
+          return Object.assign({ id: item._id }, item._doc);
+        })
+      );
+    });
 });
 
-router.post('/', async function(req, res) {
+router.post('/', function(req, res) {
   let phrase = new Phrase({
     user_id: req.query.user_id,
     dictionary: req.query.dictionary || 'general',
@@ -26,8 +28,9 @@ router.post('/', async function(req, res) {
     translated: req.query.translated,
     uri: req.query.uri
   });
-  const result = await phrase.save();
-  res.json(result);
+  phrase.save().then(function(result) {
+    res.json(result);
+  });
 });
 
 router.get('/share', function(req, res) {

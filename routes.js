@@ -8,7 +8,7 @@ require('./models/Phrases');
 mongoose.connect(config.mongoURI);
 const Phrase = mongoose.model('phrases');
 
-router.get('/', async (req, res) => {
+router.get('/', async function(req, res) {
   const phrases = await Phrase.find({ user_id: req.query.user_id });
   res.send(
     phrases.map(item => {
@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
   );
 });
 
-router.post('/', async (req, res) => {
+router.post('/', async function(req, res) {
   let phrase = new Phrase({
     user_id: req.query.user_id,
     dictionary: req.query.dictionary || 'general',

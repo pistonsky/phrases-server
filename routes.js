@@ -98,8 +98,8 @@ router.post('/', function(req, res) {
 });
 
 router.delete('/', function(req, res) {
-  const { id } = req.query;
-  Phrase.deleteOne({ _id: id }, function(err) {
+  const { uri } = req.query;
+  Phrase.deleteOne({ uri }, function(err) {
     if (err) res.json(err);
     else res.json({});
   });

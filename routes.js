@@ -97,6 +97,14 @@ router.post('/', function(req, res) {
   });
 });
 
+router.delete('/', function(req, res) {
+  const { id } = req.query;
+  Phrase.deleteOne({ _id: id }, function(err) {
+    if (err) res.json(err);
+    else res.json({});
+  });
+});
+
 router.get('/share', function(req, res) {
   const query = url.parse(req.url).query;
   res.redirect('exp://exp.host/@pistonsky/phrases/+' + query);

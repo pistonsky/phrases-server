@@ -18,10 +18,18 @@ router.get('/connect_facebook', function(req, res) {
   graph.get('me?access_token=' + facebook_token, (err, { name, id }) => {
     if (user_id) {
       // add this facebook account to the current user
-      Users.find({ user_id }).then(user => {
-        user.facebook_user_id = id;
-        user.save();
-        res.json({ user_id });
+      Users.find({ user_id }).then(users => {
+        if (users.length === 1) {
+          let user = users[0];
+          user.facebook_user_id = id;
+          user.save();
+          res.json({ user_id });
+        } else {
+          new Users({
+            user_id,
+            facebook_user_id: id
+          }).save().then(result => res.json({ user_id }));
+        }
       });
     } else {
       // login with facebook

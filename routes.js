@@ -107,7 +107,7 @@ router.delete('/', function(req, res) {
 
 router.get('/share', function(req, res) {
   const query = url.parse(req.url).query;
-  res.redirect('exp://exp.host/@pistonsky/phrases/+' + query);
+  res.redirect('phrazesapp://+' + query);
 });
 
 module.exports = router;

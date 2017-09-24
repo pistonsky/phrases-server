@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Node server for the Phrases mobile app",
   "main": "index.js",
+  "engines": {
+    "node": "8.4.0"
+  },
   "scripts": {
     "start": "node index.js",
     "dev": "./node_modules/nodemon/bin/nodemon.js index.js"

@@ -13,63 +13,81 @@ mongoose.connect(config.mongoURI);
 const Phrase = mongoose.model('phrases');
 const Users = mongoose.model('users');
 
+async function sendPhrases({ user_id, res }) {
+  const users = await Users.find({ user_id });
+  if (users.length === 0) {
+    await (new Users({ user_id })).save();
+  }
+  const phrases = await Phrase.find({ user_id });
+  res.send(
+    phrases.map(item => {
+      return Object.assign({ id: item._id }, item._doc);
+    })
+  );
+}
+
 router.get('/connect_facebook', function(req, res) {
   const { facebook_token, user_id } = req.query;
-  graph.get('me?access_token=' + facebook_token, (err, { name, id }) => {
+  graph.get('me?access_token=' + facebook_token, async (err, { name, id }) => {
+    let users;
     if (user_id) {
       // add this facebook account to the current user
-      Users.find({ user_id }).then(users => {
+      // if this facebook account is already used, then merge both accounts into current and delete the old one
+      const linked_users = await Users.find({ facebook_user_id: id });
+      if (linked_users.length === 0) {
+        // no accounts linked yet
+        users = await Users.find({ user_id });
         if (users.length === 1) {
           let user = users[0];
           user.facebook_user_id = id;
           user.save();
-          res.json({ user_id });
+          await sendPhrases({ user_id, res });
         } else {
-          new Users({
+          await new Users({
             user_id,
             facebook_user_id: id
-          }).save().then(result => res.json({ user_id }));
+          }).save();
+          await sendPhrases({ user_id, res });
         }
-      });
+      } else {
+        // there is a linked account already
+        // add all phrases of linked accounts to the current user
+        for (let linked_user of linked_users) {
+          await Phrase.updateMany({ user_id: linked_user.user_id }, { user_id });
+          await linked_user.remove();
+        }
+        await sendPhrases({ user_id, res });
+      }
     } else {
       // login with facebook
-      Users.find({ facebook_user_id: id }).then(users => {
-        if (users.length === 1) {
-          res.json({ user_id: users[0].user_id });
-        } else {
-          // no user with this facebook account - create one
-          const new_user_id = Math.random()
-            .toString(36)
-            .slice(2);
-          new Users({
-            user_id: new_user_id,
-            facebook_user_id: id
-          })
-            .save()
-            .then(result => res.json({ user_id: new_user_id }));
-        }
-      });
+      users = Users.find({ facebook_user_id: id });
+      if (users.length === 1) {
+        const phrases = Phrase.find({ user_id: users[0].user_id });
+        res.json({
+          user_id: users[0].user_id,
+          phrases: phrases.map(item => Object.assign({ id: item._id }, item._doc))
+        });
+      } else {
+        // no user with this facebook account - create one
+        const new_user_id = Math.random()
+          .toString(36)
+          .slice(2);
+        await (new Users({
+          user_id: new_user_id,
+          facebook_user_id: id
+        })).save();
+        res.json({ user_id: new_user_id, phrases: [] });
+      }
     }
   });
 });
 
-router.get('/', function(req, res) {
+router.get('/', async (req, res) => {
   const { user_id } = req.query;
-  Users.find({ user_id }).then(users => {
-    if (users.length === 0) {
-      new Users({ user_id }).save();
-    }
-    Phrase.find({ user_id }).then(function(phrases) {
-      res.send(
-        phrases.map(item => {
-          return Object.assign({ id: item._id }, item._doc);
-        })
-      );
-    });
-  });
+  await sendPhrases({ user_id, res });
 });
 
-router.post('/', function(req, res) {
+router.post('/', async (req, res) => {
   const {
     user_id,
     dictionary,
@@ -78,31 +96,26 @@ router.post('/', function(req, res) {
     translated,
     uri
   } = req.query;
-  Users.find({ user_id }).then(users => {
-    if (users.length === 0) {
-      new Users({ user_id }).save();
-    }
-    new Phrase({
-      user_id: req.query.user_id,
-      dictionary: req.query.dictionary || 'general',
-      language: req.query.language,
-      original: req.query.original,
-      translated: req.query.translated,
-      uri: req.query.uri
-    })
-      .save()
-      .then(function(result) {
-        res.json(result);
-      });
-  });
+  const users = Users.find({ user_id });
+  if (users.length === 0) {
+    await (new Users({ user_id })).save();
+  }
+  const result = await new Phrase({
+    user_id: req.query.user_id,
+    dictionary: req.query.dictionary || 'general',
+    language: req.query.language,
+    original: req.query.original,
+    translated: req.query.translated,
+    uri: req.query.uri
+  }).save();
+  res.json(result);
 });
 
-router.delete('/', function(req, res) {
+router.delete('/', async (req, res) => {
   const { uri } = req.query;
-  Phrase.deleteOne({ uri }, function(err) {
-    if (err) res.json(err);
-    else res.json({});
-  });
+  const err = await Phrase.deleteOne({ uri });
+  if (err) res.json(err);
+  else res.json({});
 });
 
 router.get('/share', function(req, res) {

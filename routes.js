@@ -16,14 +16,15 @@ const Users = mongoose.model('users');
 async function sendPhrases({ user_id, res }) {
   const users = await Users.find({ user_id });
   if (users.length === 0) {
-    await (new Users({ user_id })).save();
+    await new Users({ user_id }).save();
   }
   const phrases = await Phrase.find({ user_id });
-  res.send(
-    phrases.map(item => {
+  res.json({
+    user_id,
+    phrases: phrases.map(item => {
       return Object.assign({ id: item._id }, item._doc);
     })
-  );
+  });
 }
 
 router.get('/connect_facebook', function(req, res) {
@@ -50,32 +51,52 @@ router.get('/connect_facebook', function(req, res) {
           await sendPhrases({ user_id, res });
         }
       } else {
-        // there is a linked account already
-        // add all phrases of linked accounts to the current user
+        // there is one or more linked accounts already
+        // add all phrases of linked accounts to the current user and remove all other users
         for (let linked_user of linked_users) {
-          await Phrase.updateMany({ user_id: linked_user.user_id }, { user_id });
-          await linked_user.remove();
+          await Phrase.updateMany(
+            { user_id: linked_user.user_id },
+            { user_id }
+          );
+          if (linked_user.user_id !== user_id) {
+            await linked_user.remove();
+          }
+        }
+        const user = await Users.find({ user_id });
+        if (user.length > 0) {
+          await Users.updateMany({ user_id }, { facebook_user_id: id });
+        } else {
+          await new Users({
+            user_id,
+            facebook_user_id: id
+          }).save();
         }
         await sendPhrases({ user_id, res });
       }
     } else {
       // login with facebook
-      users = Users.find({ facebook_user_id: id });
-      if (users.length === 1) {
-        const phrases = Phrase.find({ user_id: users[0].user_id });
-        res.json({
-          user_id: users[0].user_id,
-          phrases: phrases.map(item => Object.assign({ id: item._id }, item._doc))
+      users = await Users.find({ facebook_user_id: id });
+      if (users.length > 0) {
+        const final_user_id = users[0].user_id; // merge all users into first one
+        await Phrase.updateMany(
+          { user_id: { $in: users.map(e => e.user_id) } },
+          { user_id: final_user_id }
+        );
+        // remove all other users
+        await Users.deleteMany({
+          facebook_user_id: id,
+          user_id: { $ne: final_user_id }
         });
+        await sendPhrases({ user_id: final_user_id, res });
       } else {
         // no user with this facebook account - create one
         const new_user_id = Math.random()
           .toString(36)
           .slice(2);
-        await (new Users({
+        await new Users({
           user_id: new_user_id,
           facebook_user_id: id
-        })).save();
+        }).save();
         res.json({ user_id: new_user_id, phrases: [] });
       }
     }
@@ -98,7 +119,7 @@ router.post('/', async (req, res) => {
   } = req.query;
   const users = Users.find({ user_id });
   if (users.length === 0) {
-    await (new Users({ user_id })).save();
+    await new Users({ user_id }).save();
   }
   const result = await new Phrase({
     user_id: req.query.user_id,

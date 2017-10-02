@@ -8,7 +8,12 @@ var router = express.Router();
 require('./models/Phrases');
 require('./models/Users');
 
-mongoose.connect(config.mongoURI);
+mongoose.connect(config.mongoURI, {
+  server: {
+    auto_reconnect: true,
+    reconnectTries: Number.MAX_VALUE
+  }
+});
 
 const Phrase = mongoose.model('phrases');
 const Users = mongoose.model('users');

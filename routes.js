@@ -158,4 +158,11 @@ router.get('/share', function(req, res) {
   res.redirect('phrazesapp://+' + query);
 });
 
+router.delete('/dictionary', async (req, res) => {
+  const { id, user_id } = req.query;
+  const error = await Phrase.deleteMany({ user_id, dictionary: id });
+  if (error) res.status(500).json({ error });
+  else res.json({});
+});
+
 module.exports = router;

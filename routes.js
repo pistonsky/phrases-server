@@ -34,75 +34,84 @@ async function sendPhrases({ user_id, res }) {
 
 router.get('/connect_facebook', function(req, res) {
   const { facebook_token, user_id } = req.query;
-  graph.get('me?access_token=' + facebook_token, async (err, { name, id }) => {
-    let users;
-    if (user_id) {
-      // add this facebook account to the current user
-      // if this facebook account is already used, then merge both accounts into current and delete the old one
-      const linked_users = await Users.find({ facebook_user_id: id });
-      if (linked_users.length === 0) {
-        // no accounts linked yet
-        users = await Users.find({ user_id });
-        if (users.length === 1) {
-          let user = users[0];
-          user.facebook_user_id = id;
-          user.save();
-          await sendPhrases({ user_id, res });
-        } else {
-          await new Users({
-            user_id,
-            facebook_user_id: id
-          }).save();
-          await sendPhrases({ user_id, res });
-        }
-      } else {
-        // there is one or more linked accounts already
-        // add all phrases of linked accounts to the current user and remove all other users
-        for (let linked_user of linked_users) {
-          await Phrase.updateMany(
-            { user_id: linked_user.user_id },
-            { user_id }
-          );
-          if (linked_user.user_id !== user_id) {
-            await linked_user.remove();
-          }
-        }
-        const user = await Users.find({ user_id });
-        if (user.length > 0) {
-          await Users.updateMany({ user_id }, { facebook_user_id: id });
-        } else {
-          await new Users({
-            user_id,
-            facebook_user_id: id
-          }).save();
-        }
-        await sendPhrases({ user_id, res });
-      }
+  graph.get('me?access_token=' + facebook_token, async (err, response) => {
+    if (err) {
+      res.status(503).send();
     } else {
-      // login with facebook
-      users = await Users.find({ facebook_user_id: id });
-      if (users.length > 0) {
-        const final_user_id = users[0].user_id; // merge all users into first one
-        await Phrase.updateMany(
-          { user_id: { $in: users.map(e => e.user_id) } },
-          { user_id: final_user_id }
-        );
-        // remove all other users
-        await Users.deleteMany({
-          facebook_user_id: id,
-          user_id: { $ne: final_user_id }
-        });
-        await sendPhrases({ user_id: final_user_id, res });
+      const { name, id } = response;
+      let users;
+      if (user_id) {
+        // add this facebook account to the current user
+        // if this facebook account is already used, then merge both accounts into current and delete the old one
+        const linked_users = await Users.find({ facebook_user_id: id });
+        if (linked_users.length === 0) {
+          // no accounts linked yet
+          users = await Users.find({ user_id });
+          if (users.length === 1) {
+            let user = users[0];
+            user.facebook_user_id = id;
+            user.save();
+            await sendPhrases({ user_id, res });
+          } else {
+            await new Users({
+              user_id,
+              facebook_user_id: id
+            }).save();
+            await sendPhrases({ user_id, res });
+          }
+        } else {
+          // there is one or more linked accounts already
+          // add all phrases of linked accounts to the current user
+          await Phrase.updateMany(
+            { user_id: { $in: linked_users.map(e => e.user_id) } },
+            { $set: { user_id } }
+          );
+          // remove all other users
+          await Users.deleteMany({
+            facebook_user_id: id,
+            user_id: { $ne: user_id }
+          });
+          // make sure current user is connected to facebook
+          const user = await Users.find({ user_id });
+          if (user.length > 0) {
+            await Users.updateMany(
+              { user_id },
+              { $set: { facebook_user_id: id } }
+            );
+          } else {
+            await new Users({
+              user_id,
+              facebook_user_id: id
+            }).save();
+          }
+          await sendPhrases({ user_id, res });
+        }
       } else {
-        // no user with this facebook account - create one
-        const new_user_id = Math.random()
-          .toString(36)
-          .slice(2);
-        await new Users({
-          user_id: new_user_id,
-          facebook_user_id: id
-        }).save();
-        res.json({ user_id: new_user_id, phrases: [] });
+        // login with facebook
+        users = await Users.find({ facebook_user_id: id });
+        if (users.length > 0) {
+          const final_user_id = users[0].user_id; // merge all users into first one
+          await Phrase.updateMany(
+            { user_id: { $in: users.map(e => e.user_id) } },
+            { $set: { user_id: final_user_id } }
+          );
+          // remove all other users
+          await Users.deleteMany({
+            facebook_user_id: id,
+            user_id: { $ne: final_user_id }
+          });
+          await sendPhrases({ user_id: final_user_id, res });
+        } else {
+          // no user with this facebook account - create one
+          const new_user_id = Math.random()
+            .toString(36)
+            .slice(2);
+          await new Users({
+            user_id: new_user_id,
+            facebook_user_id: id
+          }).save();
+          res.json({ user_id: new_user_id, phrases: [] });
+        }
       }
     }
   });

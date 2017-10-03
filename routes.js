@@ -153,6 +153,35 @@ router.delete('/', async (req, res) => {
   else res.json({});
 });
 
+router.put('/', async (req, res) => {
+  const {
+    user_id,
+    dictionary,
+    language,
+    original,
+    translated,
+    uri
+  } = req.query;
+  const users = Users.find({ user_id });
+  if (users.length === 0) {
+    await new Users({ user_id }).save();
+  }
+  try {
+    let keys_to_update = {};
+    if (original) keys_to_update.original = original;
+    if (translated) keys_to_update.translated = translated;
+    const result = await Phrase.update({ user_id, uri }, { $set: keys_to_update });
+    if (result.ok === 1) {
+      res.status(200).json({ updated: result.nModified });
+    } else {
+      res.status(500).json(result);
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error });
+  }
+});
+
 router.get('/share', function(req, res) {
   const query = url.parse(req.url).query;
   res.redirect('phrazesapp://+' + query);

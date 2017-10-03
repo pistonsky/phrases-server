@@ -165,4 +165,19 @@ router.delete('/dictionary', async (req, res) => {
   else res.json({});
 });
 
+router.put('/dictionary', async (req, res) => {
+  const { old_name, new_name, user_id } = req.query;
+  try {
+    const result = await Phrase.updateMany({ user_id, dictionary: old_name }, { $set: { dictionary: new_name }});
+    if (result.ok === 1) {
+      res.status(200).json({ updated: result.nModified });
+    } else {
+      res.status(500).json(result);
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error });
+  }
+});
+
 module.exports = router;

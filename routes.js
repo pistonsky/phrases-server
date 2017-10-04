@@ -18,14 +18,16 @@ mongoose.connect(config.mongoURI, {
 const Phrase = mongoose.model('phrases');
 const Users = mongoose.model('users');
 
-async function sendPhrases({ user_id, res }) {
+async function sendPhrases({ user_id, dictionary, res }) {
   const users = await Users.find({ user_id });
   if (users.length === 0) {
     await new Users({ user_id }).save();
   }
-  const phrases = await Phrase.find({ user_id });
+  let conditions = { user_id };
+  if (dictionary) conditions.dictionary = dictionary;
+  const phrases = await Phrase.find(conditions);
   res.json({
-    user_id,
+    ...conditions,
     phrases: phrases.map(item => {
       return Object.assign({ id: item._id }, item._doc);
     })
@@ -118,8 +120,8 @@ router.get('/connect_facebook', function(req, res) {
 });
 
 router.get('/', async (req, res) => {
-  const { user_id } = req.query;
-  await sendPhrases({ user_id, res });
+  const { user_id, dictionary } = req.query;
+  await sendPhrases({ user_id, dictionary, res });
 });
 
 router.post('/', async (req, res) => {

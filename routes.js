@@ -1,5 +1,6 @@
 var express = require('express');
 var url = require('url');
+var qs = require('qs');
 var mongoose = require('mongoose');
 var graph = require('fbgraph');
 var config = require('./config/keys');
@@ -208,6 +209,72 @@ router.put('/dictionary', async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error });
+  }
+});
+
+router.get('*', async (req, res) => {
+  const query = qs.parse(req.params[0].replace('/phrazesapp://+', ''));
+  if (query.dictionary) {
+    const count = await Phrase.count({ user_id: query.user_id, dictionary: query.dictionary });
+    res.status(200).send(`
+      <html>
+        <head>
+          <title>${query.dictionary}</title>
+          <meta name="description"  content="Learn ${count} phrases now in Phrazes app!" />
+          <meta property="og:title" content="${query.dictionary}" />
+          <meta property="og:description" content="Learn ${count} phrases now in Phrazes app!" />
+          <meta property="og:image" content="https://pistonsky-phrases.herokuapp.com/phrazes.png" />
+          <meta property="og:image:width" content="1024" />
+          <meta property="og:image:height" content="1024" />
+          <meta property="og:url" content="pistonsky-phrases.herokuapp.com" />
+          <meta property="og:type" content="website" />
+          <meta property="fb:app_id" content="672834932920089" />
+        </head>
+        <body>
+        </body>
+      </html>
+    `);
+  } else {
+    if (query.original) {
+      res.status(200).send(`
+        <html>
+          <head>
+            <title>${query.original} -> ${query.translated}</title>
+            <meta property="og:title" content="${query.original} -> ${query.translated}" />
+            <meta name="description"  content="Learn this phrase now in Phrazes app!" />
+            <meta property="og:description" content="Learn this phrase now in Phrazes app!" />
+            <meta property="og:image" content="https://pistonsky-phrases.herokuapp.com/phrazes.png" />
+            <meta property="og:image:width" content="1024" />
+            <meta property="og:image:height" content="1024" />
+            <meta property="og:url" content="pistonsky-phrases.herokuapp.com" />
+            <meta property="og:type" content="website" />
+            <meta property="fb:app_id" content="672834932920089" />
+          </head>
+          <body>
+          </body>
+        </html>
+      `);
+    } else {
+      const count = await Phrase.count({ user_id: query.user_id });
+      res.status(200).send(`
+        <html>
+          <head>
+            <title>Phrazes: speak like a local!</title>
+            <meta property="og:title" content="Phrazes: speak like a local!" />
+            <meta name="description"  content="Learn these ${count} phrases now in Phrazes app!" />
+            <meta property="og:description" content="Learn these ${count} phrases now in Phrazes app!" />
+            <meta property="og:image" content="https://pistonsky-phrases.herokuapp.com/phrazes.png" />
+            <meta property="og:image:width" content="1024" />
+            <meta property="og:image:height" content="1024" />
+            <meta property="og:url" content="pistonsky-phrases.herokuapp.com" />
+            <meta property="og:type" content="website" />
+            <meta property="fb:app_id" content="672834932920089" />
+          </head>
+          <body>
+          </body>
+        </html>
+      `);
+    }
   }
 });
 

@@ -19,6 +19,8 @@ mongoose.connect(config.mongoURI, {
 const Phrase = mongoose.model('phrases');
 const Users = mongoose.model('users');
 
+const DEFAULT_DICTIONARY_NAME = 'Phrazes';
+
 async function sendPhrases({ user_id, dictionary, res }) {
   const users = await Users.find({ user_id });
   if (users.length === 0) {
@@ -138,15 +140,35 @@ router.post('/', async (req, res) => {
   if (users.length === 0) {
     await new Users({ user_id }).save();
   }
-  const result = await new Phrase({
-    user_id: req.query.user_id,
-    dictionary: req.query.dictionary || 'general',
-    language: req.query.language,
-    original: req.query.original,
-    translated: req.query.translated,
-    uri: req.query.uri
-  }).save();
-  res.json(result);
+  try {
+    let keys_to_update = {};
+    if (original) keys_to_update.original = original;
+    if (translated) keys_to_update.translated = translated;
+    if (dictionary) keys_to_update.dictionary = dictionary;
+    if (language) keys_to_update.language = language;
+    const updateResult = await Phrase.updateMany({ user_id, uri }, { $set: keys_to_update });
+    if ((updateResult.ok === 1) && (updateResult.nModified > 0)) {
+      res.status(200).json({ updated: updateResult.nModified });
+    } else {
+      const phrase = {
+        user_id,
+        dictionary: dictionary || DEFAULT_DICTIONARY_NAME,
+        language,
+        original,
+        translated,
+        uri
+      };
+      const insertResult = await new Phrase(phrase).save();
+      if (insertResult) {
+        res.status(200).json(insertResult);
+      } else {
+        res.status(500).json({ error: 'Could not save phrase', phrase });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error });
+  }
 });
 
 router.delete('/', async (req, res) => {
@@ -154,35 +176,6 @@ router.delete('/', async (req, res) => {
   const err = await Phrase.deleteOne({ uri });
   if (err) res.json(err);
   else res.json({});
-});
-
-router.put('/', async (req, res) => {
-  const {
-    user_id,
-    dictionary,
-    language,
-    original,
-    translated,
-    uri
-  } = req.query;
-  const users = Users.find({ user_id });
-  if (users.length === 0) {
-    await new Users({ user_id }).save();
-  }
-  try {
-    let keys_to_update = {};
-    if (original) keys_to_update.original = original;
-    if (translated) keys_to_update.translated = translated;
-    const result = await Phrase.update({ user_id, uri }, { $set: keys_to_update });
-    if (result.ok === 1) {
-      res.status(200).json({ updated: result.nModified });
-    } else {
-      res.status(500).json(result);
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error });
-  }
 });
 
 router.get('/share', function(req, res) {

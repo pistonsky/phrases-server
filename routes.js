@@ -1,4 +1,5 @@
 var express = require('express');
+var path = require('path');
 var url = require('url');
 var qs = require('qs');
 var mongoose = require('mongoose');
@@ -124,7 +125,11 @@ router.get('/connect_facebook', function(req, res) {
 
 router.get('/', async (req, res) => {
   const { user_id, dictionary } = req.query;
-  await sendPhrases({ user_id, dictionary, res });
+  if (user_id) {
+    await sendPhrases({ user_id, dictionary, res });
+  } else {
+    res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
+  }
 });
 
 router.post('/', async (req, res) => {

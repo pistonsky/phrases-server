@@ -5,3 +5,4 @@ export const S3_BUCKET = 'pistonsky-phrases';
 export const S3_REGION = 'ap-southeast-1';
 export const S3_ACCESS_KEY = 'AKIAJJ7F7NZE53HD66SA';
 export const S3_SECRET_KEY = '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';
+export const FACEBOOK_APP_ID = '672834932920089';

@@ -11,7 +11,7 @@ class Header extends Component {
           height: 40,
           backgroundColor: 'black',
           display: 'flex',
-          justifyContent: 'flex-end',
+          justifyContent: this.props.logged_in ? 'center' : 'flex-end',
           alignItems: 'center'
         }}
       >
@@ -26,7 +26,7 @@ class Header extends Component {
 
 function mapStateToProps(state) {
   return {
-    logged_in: true || getUserId(state) !== null,
+    logged_in: getUserId(state) !== null,
     current_route: state.routing.location.pathname
   };
 }

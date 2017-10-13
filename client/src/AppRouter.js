@@ -4,9 +4,7 @@ import { Route } from 'react-router';
 import { ConnectedRouter } from 'react-router-redux';
 import store from './store';
 import history from './store/history';
-import { Header, App } from './containers';
-import { Landing } from './components';
-import './styles/style.css';
+import { Header, App, Landing, ConnectFacebookModal } from './containers';
 
 export default class AppRouter extends Component {
   render() {
@@ -15,6 +13,7 @@ export default class AppRouter extends Component {
         <ConnectedRouter history={history}>
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Header />
+            <ConnectFacebookModal />
             <Route exact path='/' component={Landing} />
             <Route path='/app' component={App} />
           </div>

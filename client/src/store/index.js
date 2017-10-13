@@ -4,7 +4,7 @@ import thunk from 'redux-thunk';
 import { persistStore, autoRehydrate } from 'redux-persist';
 import { routerMiddleware } from 'react-router-redux';
 import reducers from '../reducers';
-import actions from '../actions';
+import * as actions from '../actions';
 import { startupSaga } from '../sagas';
 import history from './history';
 

@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import FacebookLogin from 'react-facebook-login';
+import * as actions from '../actions';
 
 class Landing extends Component {
   render() {
@@ -18,11 +20,14 @@ class Landing extends Component {
         <FacebookLogin
           appId="672834932920089"
           fields="name,email"
-          callback={response => console.log(response)}
+          callback={response => {
+            const token = response.accessToken;
+            this.props.loginWithFacebook(token);
+          }}
         />
       </div>
     );
   }
 }
 
-export default Landing;
+export default connect(null, actions)(Landing);

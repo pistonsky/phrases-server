@@ -124,7 +124,9 @@ router.get('/connect_facebook', function(req, res) {
 });
 
 router.get('/', async (req, res) => {
+  console.log(`req.query: ${req.query}`);
   const { user_id, dictionary } = req.query;
+  console.log(user_id);
   if (user_id) {
     await sendPhrases({ user_id, dictionary, res });
   } else {

@@ -1,26 +1,48 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { NavBar } from '../containers';
 import { getUserId } from '../reducers/selectors';
+import colors from '../styles/colors';
 
 class Header extends Component {
   render() {
-    return (
-      <div
-        style={{
-          height: 40,
-          backgroundColor: 'black',
-          display: 'flex',
-          justifyContent: this.props.logged_in ? 'center' : 'flex-end',
-          alignItems: 'center'
-        }}
-      >
-        {this.props.logged_in && (this.props.current_route === '/') &&
-          <Link to="/app" style={{ color: 'white', marginRight: 20, textDecoration: 'none' }}>
-            GO TO APP ->
-          </Link>}
-      </div>
-    );
+    if (this.props.logged_in) {
+      if (this.props.current_route === '/') {
+        return (
+          <div
+            style={{
+              height: 50,
+              backgroundColor: 'black',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center'
+            }}
+          >
+            <Link
+              to="/app"
+              style={{
+                height: 50,
+                backgroundColor: colors.secondary,
+                color: 'white',
+                fontWeight: 'bold',
+                paddingLeft: 20,
+                paddingRight: 20,
+                lineHeight: 50,
+                textDecoration: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              GO TO APP 
+            </Link>
+          </div>
+        );
+      } else {
+        return <NavBar />;
+      }
+    } else {
+      return null;
+    }
   }
 }
 

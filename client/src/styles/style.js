@@ -1,5 +1,21 @@
 import colors from './colors';
 
+const SCREEN_WIDTH = 414;
+
+export const navBarStyle = {
+  display: 'flex',
+  backgroundColor: colors.secondary,
+  width: SCREEN_WIDTH,
+  height: 44,
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  flexDirection: 'row'
+};
+
+export const navBarTitle = {
+  color: colors.white
+};
+
 export const modalContainer = {
   flex: 1,
   alignItems: 'center',

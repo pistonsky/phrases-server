@@ -36,3 +36,5 @@ if (module.hot) {
 saga.run(startupSaga);
 
 export default store;
+
+window.store = store;

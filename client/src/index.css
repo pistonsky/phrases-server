@@ -1,4 +1,10 @@
 html {
+  width: 414px;
+  margin: auto;
+  position: relative;
+}
+
+html, #root {
   height: 100%;
 }
 

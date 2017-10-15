@@ -21,7 +21,9 @@ class PhrasesList extends Component {
   render() {
     return (
       <div className="phrases-list">
-        {this.props.data.map(e => <Phrase data={e} />)}
+        <div className="phrases-list-wrap">
+          {this.props.data.map(e => <Phrase data={e} />)}
+        </div>
       </div>
     );
   }

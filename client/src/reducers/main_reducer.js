@@ -61,15 +61,6 @@ const INITIAL_STATE = {
 export default function(state = INITIAL_STATE, action) {
   let dictionaries;
   switch (action.type) {
-    case REHYDRATE:
-      return {
-        ...action.payload.main,
-        data: action.payload.main.data ? action.payload.main.data.map(e => ({
-          ...e,
-          audio: new Audio(config.BASE_AUDIO_URL + e.uri + '.caf')
-        })) : []
-      };
-
     case RECORDING_PERMISSIONS_GRANTED:
       return { ...state, recording_permissions: true };
 
@@ -193,10 +184,7 @@ export default function(state = INITIAL_STATE, action) {
       }
       return {
         ...state,
-        data: action.phrases.map(e => ({
-          ...e,
-          audio: new Audio(config.BASE_AUDIO_URL + e.uri + '.caf')
-        })),
+        data: action.phrases,
         dictionaries,
         data_loading: false
       };

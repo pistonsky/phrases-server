@@ -32,7 +32,7 @@ class DictionarySelectorModal extends Component {
       <div
         className="dictionary-selector-modal"
         style={{
-          top: this.props.visible ? '0%' : '100%'
+          top: this.props.visible ? '0%' : '200%'
         }}
       >
         <div

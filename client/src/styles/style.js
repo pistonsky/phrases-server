@@ -3,9 +3,10 @@ import colors from './colors';
 const SCREEN_WIDTH = 414;
 
 export const navBarStyle = {
+  position: 'fixed',
   display: 'flex',
   backgroundColor: colors.secondary,
-  width: SCREEN_WIDTH,
+  width: '100%',
   height: 44,
   justifyContent: 'space-between',
   alignItems: 'center',

@@ -4,8 +4,8 @@
   justify-content: flex-start;
   background-color: #333;
   overflow-y: scroll;
-  width: 414px;
-  height: 100%;
+  margin-top: 44px;
+  width: 600px;
 }
 
 .phrases-list-wrap {
@@ -28,3 +28,53 @@
 .phrase:hover {
   background-color: #555;
 }
+
+/* ----------- iPhone 4 and 4S ----------- */
+
+@media only screen 
+  and (min-device-width: 320px) 
+  and (max-device-width: 480px)
+  and (-webkit-min-device-pixel-ratio: 2)
+  and (orientation: portrait) {
+    .phrases-list {
+      width: 320px;
+    }
+}
+
+/* ----------- iPhone 5, 5S, 5C and 5SE ----------- */
+
+@media only screen 
+  and (min-device-width: 320px) 
+  and (max-device-width: 568px)
+  and (-webkit-min-device-pixel-ratio: 2)
+  and (orientation: portrait) {
+    .phrases-list {
+      width: 320px;
+    }
+}
+
+/* ----------- iPhone 6, 6S, 7 and 8 ----------- */
+
+@media only screen 
+  and (min-device-width: 375px) 
+  and (max-device-width: 667px) 
+  and (-webkit-min-device-pixel-ratio: 2)
+  and (orientation: portrait) { 
+    .phrases-list {
+      width: 375px;
+    }
+}
+
+/* ----------- iPhone 6+, 7+ and 8+ ----------- */
+
+@media only screen 
+  and (min-device-width: 414px) 
+  and (max-device-width: 736px) 
+  and (-webkit-min-device-pixel-ratio: 3)
+  and (orientation: portrait) { 
+    .phrases-list {
+      width: 414px;
+    }
+}
+
+/* -------------------------------------------- */

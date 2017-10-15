@@ -23,7 +23,9 @@ import {
   GO_OFFLINE,
   TOGGLE_DICTIONARY_SELECTOR
 } from '../actions/types';
+import { REHYDRATE } from 'redux-persist/constants';
 import colors from '../styles/colors';
+import * as config from '../utils/config';
 
 const SHARED_DICTIONARY_NAME = 'Added';
 const DEFAULT_DICTIONARY_NAME = 'Phrazes';
@@ -43,7 +45,8 @@ const INITIAL_STATE = {
     },
     {
       head: 'Connect with locals',
-      body: 'Ask them to give you some phrases\nthen record how they pronounce it',
+      body:
+        'Ask them to give you some phrases\nthen record how they pronounce it',
       // body: 'Say goodbye to dictionaries\nlearn from locals',
       background: colors.secondary_dark
     },
@@ -58,6 +61,15 @@ const INITIAL_STATE = {
 export default function(state = INITIAL_STATE, action) {
   let dictionaries;
   switch (action.type) {
+    case REHYDRATE:
+      return {
+        ...action.payload.main,
+        data: action.payload.main.data ? action.payload.main.data.map(e => ({
+          ...e,
+          audio: new Audio(config.BASE_AUDIO_URL + e.uri + '.caf')
+        })) : []
+      };
+
     case RECORDING_PERMISSIONS_GRANTED:
       return { ...state, recording_permissions: true };
 
@@ -181,7 +193,10 @@ export default function(state = INITIAL_STATE, action) {
       }
       return {
         ...state,
-        data: action.phrases,
+        data: action.phrases.map(e => ({
+          ...e,
+          audio: new Audio(config.BASE_AUDIO_URL + e.uri + '.caf')
+        })),
         dictionaries,
         data_loading: false
       };

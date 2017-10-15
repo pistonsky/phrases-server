@@ -9,7 +9,8 @@ const Phrase = props => {
     <div
       className='phrase'
       onClick={() => {
-        props.data.audio.play();
+        const audio = new Audio(config.BASE_AUDIO_URL + props.data.uri + '.caf');
+        audio.play();
       }}
     >
       <div className='original'>{props.data.original}</div>

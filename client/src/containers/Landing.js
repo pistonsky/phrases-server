@@ -8,6 +8,21 @@ import { getUserId } from '../reducers/selectors';
 import '../styles/landing.css';
 
 class Landing extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      slide: 0
+    }
+  }
+
+  componentDidMount() {
+    this.interval = window.setInterval(() => this.setState({ slide: (this.state.slide + 1) % 5 }), 3000);
+  }
+
+  componentWillUnmount() {
+    window.clearInterval(this.interval);
+  }
+  
   render() {
     return (
       <div className="landing">
@@ -42,11 +57,44 @@ class Landing extends Component {
               <div className="beta-testing-signup-form-wrap" />
             </div>
             <div className="header-img">
-              <div class="phone-img">
-                <img
-                  alt="header-phone"
-                  src={require('../assets/screens/en1.png')}
-                />
+              <div className="phone-img">
+                <div className="phone-img-container">
+                  <img
+                    alt="header-phone"
+                    src={require('../assets/screens/en1.png')}
+                    style={{
+                      opacity: this.state.slide === 0 ? 1 : 0
+                    }}
+                  />
+                  <img
+                    alt="header-phone"
+                    src={require('../assets/screens/en2.png')}
+                    style={{
+                      opacity: this.state.slide === 1 ? 1 : 0
+                    }}
+                  />
+                  <img
+                    alt="header-phone"
+                    src={require('../assets/screens/en3.png')}
+                    style={{
+                      opacity: this.state.slide === 2 ? 1 : 0
+                    }}
+                  />
+                  <img
+                    alt="header-phone"
+                    src={require('../assets/screens/en4.png')}
+                    style={{
+                      opacity: this.state.slide === 3 ? 1 : 0
+                    }}
+                  />
+                  <img
+                    alt="header-phone"
+                    src={require('../assets/screens/en5.png')}
+                    style={{
+                      opacity: this.state.slide === 4 ? 1 : 0
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>

@@ -104,15 +104,27 @@ header .header-title img {
   background-size: 100% 100%;
 }
 .header-img .phone-img {
-  max-width: 384px;
   padding: 5em 1.6em;
 }
 .phone-img {
   position: relative;
   z-index: 1;
-  max-width: 303px;
   padding: 4.2em 1.1em 4em;
   margin: 0 auto;
+}
+.phone-img-container {
+  position: relative;
+  width: 320px;
+  height: 568px;
+}
+.phone-img-container img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  opacity: 0;
+  transition: opacity 0.3s linear;
 }
 
 .section-h1 {
@@ -181,6 +193,11 @@ header .header-title img {
   background: #ff5b1e;
 }
 
+.slick-slider {
+  position: relative;
+  left: -100%;
+}
+
 @media only screen and (max-width: 950px) {
   .desktop-only {
     display: none;
@@ -225,14 +242,12 @@ header .header-title img {
     width: 100%;
   }
   .header-img img {
-    max-width: 224px;
     margin-bottom: 0;
   }
   .header-img .phone-img {
     padding: 65px 16px;
   }
   .phone-img {
-    max-width: 224px;
     padding: 50px 17px 55px;
   }
 }
@@ -242,12 +257,8 @@ header .header-title img {
     display: none;
   }
   .phone-img {
-    max-width: 180px;
     padding: 40px 12px 45px;
   }
-}
-
-@media only screen and (max-width: 550px) {
   header .section-description {
     font-size: 1.5em;
     margin: 10px 0;
@@ -262,3 +273,57 @@ header .header-title img {
     margin-bottom: -12em;
   }
 }
+
+/* ----------- iPhone 4 and 4S ----------- */
+
+@media only screen 
+  and (min-device-width: 320px) 
+  and (max-device-width: 480px)
+  and (-webkit-min-device-pixel-ratio: 2)
+  and (orientation: portrait) {
+    .phone-img-container {
+      width: 180px;
+      height: 319.5px;
+    }
+}
+
+/* ----------- iPhone 5, 5S, 5C and 5SE ----------- */
+
+@media only screen 
+  and (min-device-width: 320px) 
+  and (max-device-width: 568px)
+  and (-webkit-min-device-pixel-ratio: 2)
+  and (orientation: portrait) {
+    .phone-img-container {
+      width: 180px;
+      height: 319.5px;
+    }
+}
+
+/* ----------- iPhone 6, 6S, 7 and 8 ----------- */
+
+@media only screen 
+  and (min-device-width: 375px) 
+  and (max-device-width: 667px) 
+  and (-webkit-min-device-pixel-ratio: 2)
+  and (orientation: portrait) { 
+    .phone-img-container {
+      width: 240px;
+      height: 426px;
+    }
+}
+
+/* ----------- iPhone 6+, 7+ and 8+ ----------- */
+
+@media only screen 
+  and (min-device-width: 414px) 
+  and (max-device-width: 736px) 
+  and (-webkit-min-device-pixel-ratio: 3)
+  and (orientation: portrait) { 
+    .phone-img-container {
+      width: 280px;
+      height: 497px;
+    }
+}
+
+/* -------------------------------------------- */

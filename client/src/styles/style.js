@@ -4,6 +4,7 @@ const SCREEN_WIDTH = 414;
 
 export const navBarStyle = {
   position: 'fixed',
+  top: 0,
   display: 'flex',
   backgroundColor: colors.secondary,
   width: '100%',

@@ -9,34 +9,7 @@ class Header extends Component {
   render() {
     if (this.props.logged_in) {
       if (this.props.current_route === '/') {
-        return (
-          <div
-            style={{
-              height: 50,
-              backgroundColor: 'black',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center'
-            }}
-          >
-            <Link
-              to="/app"
-              style={{
-                height: 50,
-                backgroundColor: colors.secondary,
-                color: 'white',
-                fontWeight: 'bold',
-                paddingLeft: 20,
-                paddingRight: 20,
-                lineHeight: 50,
-                textDecoration: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              GO TO APP 
-            </Link>
-          </div>
-        );
+        return null;
       } else {
         return <NavBar />;
       }

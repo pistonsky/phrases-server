@@ -3,6 +3,7 @@ import * as api from '../api';
 import { getUserId } from '../reducers/selectors';
 import {
   SKIP_WELCOME_SCREENS,
+  DEMO_LOGIN,
   FACEBOOK_CONNECT,
   FACEBOOK_LOGIN,
   FACEBOOK_CONNECT_IN_PROGRESS,
@@ -60,6 +61,20 @@ export const loginWithFacebook = token => async dispatch => {
     }
   }
 };
+
+export const demoLogin = () => async dispatch => {
+  dispatch({ type: FACEBOOK_CONNECT_IN_PROGRESS });
+  try {
+    const { status, data } = await api.demoLogin();
+    if (status !== 200) throw status;
+    dispatch(push('/app'));
+    dispatch({ type: DEMO_LOGIN, user_id: data.user_id });
+    dispatch({ type: DATA_LOADED, phrases: data.phrases });
+  } catch (e) {
+    dispatch({ type: FACEBOOK_CONNECT_FAILED });
+    alert('Login failed =(');
+  }
+}
 
 export const ignoreConnectFacebook = () => {
   return {

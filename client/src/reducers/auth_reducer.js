@@ -1,6 +1,7 @@
 import { randomId } from '../utils/functions';
 import {
   SKIP_WELCOME_SCREENS,
+  DEMO_LOGIN,
   FACEBOOK_LOGIN,
   FACEBOOK_CONNECT,
   FACEBOOK_CONNECT_IN_PROGRESS,
@@ -19,6 +20,13 @@ export default function(state = INITIAL_STATE, action) {
       return {
         ...state,
         id: randomId()
+      };
+
+    case DEMO_LOGIN:
+      return {
+        ...state,
+        id: action.user_id,
+        facebook_connect_in_progress: false
       };
 
     case FACEBOOK_LOGIN:

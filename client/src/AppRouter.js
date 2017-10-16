@@ -17,14 +17,7 @@ export default class AppRouter extends Component {
     return (
       <Provider store={store}>
         <ConnectedRouter history={history}>
-          <div
-            style={{
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center'
-            }}
-          >
+          <div>
             <Header />
             <ConnectFacebookModal />
             <DictionarySelectorModal />

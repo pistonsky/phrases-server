@@ -9,6 +9,12 @@ export const connectFacebook = async (facebook_token, user_id) => {
   return result;
 };
 
+export const demoLogin = async () => {
+  const url = config.BASE_URL + '/demo';
+  const result = await axios.get(url);
+  return result;
+}
+
 export const addPhrase = async (phrase, user_id) => {
   const query = qs.stringify({ ...phrase, user_id });
   const url = config.BASE_URL + '/?' + query;

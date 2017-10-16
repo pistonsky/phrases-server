@@ -5,6 +5,7 @@ var qs = require('qs');
 var mongoose = require('mongoose');
 var graph = require('fbgraph');
 var config = require('./config/keys');
+var { DEMO_USER_ID } = require('./config');
 var router = express.Router();
 
 require('./models/Phrases');
@@ -121,6 +122,10 @@ router.get('/connect_facebook', function(req, res) {
       }
     }
   });
+});
+
+router.get('/demo', async (req, res) => {
+  await sendPhrases({ user_id: DEMO_USER_ID, res });
 });
 
 router.get('/', async (req, res) => {

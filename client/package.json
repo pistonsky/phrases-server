@@ -10,6 +10,7 @@
     "react-dom": "^16.0.0",
     "react-facebook-login": "^3.6.2",
     "react-icons-kit": "^1.0.7",
+    "react-loading-animation": "^1.4.0",
     "react-modal": "^3.0.0",
     "react-redux": "^5.0.6",
     "react-router": "^4.2.0",
@@ -19,7 +20,8 @@
     "redux": "^3.7.2",
     "redux-persist": "^4.10.1",
     "redux-saga": "^0.15.6",
-    "redux-thunk": "^2.2.0"
+    "redux-thunk": "^2.2.0",
+    "semantic-ui-react": "^0.75.0"
   },
   "scripts": {
     "start": "react-scripts start",

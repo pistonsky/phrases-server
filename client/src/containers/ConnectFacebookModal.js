@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { default as Modal } from 'react-modal';
 import FacebookLogin from 'react-facebook-login';
+import Loading from 'react-loading-animation';
+import { loadD } from 'react-icons-kit/ionicons/loadD'; 
 import { ActivityIndicator } from '../components';
 import styles from '../styles';
 import colors from '../styles/colors';
@@ -14,16 +15,23 @@ import {
 } from '../reducers/selectors';
 import * as config from '../utils/config';
 
+import '../styles/modal.css';
+
 class ConnectFacebookModal extends Component {
   render() {
     return (
-      <Modal
-        isOpen={this.props.visible}
+      <div
+        className="modal"
+        style={{
+          display: this.props.visible ? 'block' : 'none'
+        }}
       >
         {this.props.in_progress ? (
-          <div style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <ActivityIndicator size="small" />
-            <div style={{ color: '#aaa', fontSize: 12, marginLeft: 10 }}>Logging you in...</div>
+          <div className="modal-content">
+            <Loading />
+            <div style={{ fontSize: 12, color: '#ddd' }}>
+              Logging you in...
+            </div>
           </div>
         ) : (
           <div>
@@ -48,7 +56,7 @@ class ConnectFacebookModal extends Component {
             </button>
           </div>
         )}
-      </Modal>
+      </div>
     );
   }
 }

@@ -128,7 +128,7 @@ router.get('/demo', async (req, res) => {
   await sendPhrases({ user_id: DEMO_USER_ID, res });
 });
 
-router.get('/', async (req, res) => {
+router.get(['/', '/phrazes'], async (req, res) => {
   console.log(`req.query: ${req.query}`);
   const { user_id, dictionary } = req.query;
   console.log(user_id);

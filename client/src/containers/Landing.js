@@ -54,7 +54,9 @@ class Landing extends Component {
                 Learn <span className="desktop-only">languages</span> from
                 locals.<br />Phraze by phraze.
               </div>
-              <div className="beta-testing-signup-form-wrap" />
+              <a href="https://itunes.apple.com/us/app/phrazes/id1288908502?ls=1&mt=8" target="_blank">
+                <img alt="Download on the App Store" src={require('../assets/Download_on_the_App_Store_Badge_US-UK_135x40.svg')} />
+              </a>
             </div>
             <div className="header-img">
               <div className="phone-img">

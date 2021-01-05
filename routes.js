@@ -11,15 +11,15 @@ var router = express.Router();
 require('./models/Phrases');
 require('./models/Users');
 
-mongoose.connect(config.mongoURI, {
-  server: {
-    auto_reconnect: true,
-    reconnectTries: Number.MAX_VALUE
-  }
-});
+// mongoose.connect(config.mongoURI, {
+//   server: {
+//     auto_reconnect: true,
+//     reconnectTries: Number.MAX_VALUE
+//   }
+// });
 
-const Phrase = mongoose.model('phrases');
-const Users = mongoose.model('users');
+// const Phrase = mongoose.model('phrases');
+// const Users = mongoose.model('users');
 
 const DEFAULT_DICTIONARY_NAME = 'Phrazes';
 
@@ -237,7 +237,8 @@ router.get('/privacy', async (req, res) => {
 router.get('*', async (req, res) => {
   const query = qs.parse(req.params[0].replace('/phrazesapp://+', ''));
   if (query.dictionary) {
-    const count = await Phrase.count({ user_id: query.user_id, dictionary: query.dictionary });
+    // const count = await Phrase.count({ user_id: query.user_id, dictionary: query.dictionary });
+    const count = 100;
     res.status(200).send(`
       <html>
         <head>
@@ -277,7 +278,8 @@ router.get('*', async (req, res) => {
         </html>
       `);
     } else {
-      const count = await Phrase.count({ user_id: query.user_id });
+      // const count = await Phrase.count({ user_id: query.user_id });
+      const count = 100;
       res.status(200).send(`
         <html>
           <head>

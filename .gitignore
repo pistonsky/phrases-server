@@ -1,3 +1,6 @@
 node_modules
 uploads
 config/dev.js
+
+# Sublime Text
+*.sublime-*

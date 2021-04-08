@@ -4,7 +4,7 @@
   "description": "Node server for the Phrases mobile app",
   "main": "index.js",
   "engines": {
-    "node": "8.4.0"
+    "node": "15.6.0"
   },
   "scripts": {
     "start": "node index.js",
@@ -33,6 +33,7 @@
     "fbgraph": "1.4.1",
     "mongoose": "^4.11.11",
     "path": "^0.12.7",
+    "pg": "^8.5.1",
     "qs": "^6.5.1",
     "url": "^0.11.0"
   },

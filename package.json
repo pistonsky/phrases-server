@@ -29,11 +29,11 @@
   },
   "homepage": "https://github.com/pistonsky/phrases-server#readme",
   "dependencies": {
-    "express": "^4.15.4",
-    "fbgraph": "1.4.1",
+    "express": "^4.17.1",
+    "fbgraph": "^1.4.4",
     "path": "^0.12.7",
     "pg": "^8.5.1",
-    "qs": "^6.5.1",
+    "qs": "^6.10.1",
     "url": "^0.11.0"
   },
   "devDependencies": {

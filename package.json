@@ -31,7 +31,6 @@
   "dependencies": {
     "express": "^4.15.4",
     "fbgraph": "1.4.1",
-    "mongoose": "^4.11.11",
     "path": "^0.12.7",
     "pg": "^8.5.1",
     "qs": "^6.5.1",

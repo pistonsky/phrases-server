@@ -14,6 +14,7 @@ const pool = new Pool({ connectionString: config.DATABASE_URL, ssl: { rejectUnau
 const DEFAULT_DICTIONARY_NAME = 'Phrazes';
 
 async function sendPhrases({ user_id, dictionary, res }) {
+  console.log(`sendPhrases: user_id = ${user_id}`);
   const result = await pool.query('select * from users where id = $1', [user_id]);
   if (result.rows.length === 0) {
     await pool.query('insert into users (id) values ($1)', [user_id]);

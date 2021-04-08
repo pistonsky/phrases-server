@@ -30,6 +30,7 @@
   "homepage": "https://github.com/pistonsky/phrases-server#readme",
   "dependencies": {
     "express": "^4.17.1",
+    "express-promise-router": "^4.1.0",
     "fbgraph": "^1.4.4",
     "path": "^0.12.7",
     "pg": "^8.5.1",

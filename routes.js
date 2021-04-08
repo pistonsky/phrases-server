@@ -1,4 +1,4 @@
-var express = require('express');
+const Router = require('express-promise-router');
 var path = require('path');
 var url = require('url');
 var qs = require('qs');
@@ -6,7 +6,8 @@ const { Pool } = require('pg');
 var graph = require('fbgraph');
 var config = require('./config/keys');
 var { DEMO_USER_ID } = require('./config');
-var router = express.Router();
+
+const router = new Router();
 
 const pool = new Pool({ connectionString: config.DATABASE_URL, ssl: { rejectUnauthorized: false } });
 

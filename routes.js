@@ -230,6 +230,23 @@ router.put('/dictionary', async (req, res) => {
   }
 });
 
+router.get('/privacy', async (req, res) => {
+  res.status(200).send(`
+    <html>
+      <head>
+        <title>Privacy Policy</title>
+        <meta name="description"  content="Phrazes app privacy policy" />
+      </head>
+      <body>
+        <h1>Phrazes app Privacy Policy</h1>
+        <p>All phrases created by users are currently only available for users that created those phrases.</p>
+        <p>We do not disclose any information about our users. We do not publicly show which phrases were created by our users.</p>
+        <p>However, we reserve the right to publish any phrase later, without stating the author of published phrases.</p>
+      </body>
+    </html>
+  `);
+});
+
 router.get('*', async (req, res) => {
   const query = qs.parse(req.params[0].replace('/phrazesapp://+', ''));
   if (query.dictionary) {

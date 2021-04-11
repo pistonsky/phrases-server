@@ -95,7 +95,7 @@ router.get('/connect_facebook', function(req, res) {
             res.json({ user_id: new_user_id, phrases: [] });
           }
         }
-      catch (error) {
+      } catch (error) {
         res.status(500).json({});
       }
     }

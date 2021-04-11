@@ -39,64 +39,64 @@ router.get('/connect_facebook', function(req, res) {
     } else {
       const { name, id } = response;
       let users;
-      if (user_id) {
-        // add this facebook account to the current user
-        // if this facebook account is already used, then merge both accounts into current and delete the old one
-        const linked_users = await pool.query('select id from users where facebook_user_id = $1', [id]);
-        if (linked_users.rows.length === 0) {
-          // no accounts linked yet
-          users = await pool.query('select id from users where id = $1', [user_id]);
-          if (users.rows.length === 1) {
-            await pool.query('update users set facebook_user_id = $1 where id = $2', [id, user_id]);
-            await sendPhrases({ user_id, res });
+      try {
+        if (user_id) {
+          // add this facebook account to the current user
+          // if this facebook account is already used, then merge both accounts into current and delete the old one
+          const linked_users = await pool.query('select id from users where facebook_user_id = $1', [id]);
+          if (linked_users.rows.length === 0) {
+            // no accounts linked yet
+            users = await pool.query('select id from users where id = $1', [user_id]);
+            if (users.rows.length === 1) {
+              await pool.query('update users set facebook_user_id = $1 where id = $2', [id, user_id]);
+              await sendPhrases({ user_id, res });
+            } else {
+              await pool.query('insert into users (id, facebook_user_id) values ($1, $2)', [user_id, id]);
+              await sendPhrases({ user_id, res });
+            }
           } else {
-            await pool.query('insert into users (id, facebook_user_id) values ($1, $2)', [user_id, id]);
+            // there is one or more linked accounts already
+            // add all phrases of linked accounts to the current user
+            const placeholders = [];
+            for (let i = 0; i < linked_users.rows.length; i += 1) {
+              placeholders.push(`$${i + 2}`);
+            }
+            await pool.query(`update phrases set user_id = $1 where user_id in (${placeholders.join(', ')})`, linked_users.rows.map((row) => row.id));
+            // remove all other users
+            await pool.query('delete from users where facebook_user_id = $1 and id != $2', [id, user_id]);
+            // make sure current user is connected to facebook
+            const user = await pool.query('select id from users where id = $1', [user_id]);
+            if (user.rows.length > 0) {
+              await pool.query('update users set facebook_user_id = $1 where id = $2', [id, user_id]);
+            } else {
+              await pool.query('insert into users (id, facebook_user_id) values ($1, $2)', [user_id, id]);
+            }
             await sendPhrases({ user_id, res });
           }
         } else {
-          // there is one or more linked accounts already
-          // add all phrases of linked accounts to the current user
-          const placeholders = [];
-          for (let i = 0; i < linked_users.rows.length; i += 1) {
-            placeholders.push(`$${i + 2}`);
-          }
-          await pool.query(`update phrases set user_id = $1 where user_id in (${placeholders.join(', ')})`, linked_users.rows.map((row) => row.id));
-          // remove all other users
-          await pool.query('delete from users where facebook_user_id = $1 and id != $2', [id, user_id]);
-          // make sure current user is connected to facebook
-          const user = await pool.query('select id from users where id = $1', [user_id]);
-          if (user.rows.length > 0) {
-            await pool.query('update users set facebook_user_id = $1 where id = $2', [id, user_id]);
+          // login with facebook
+          users = await pool.query('select id from users where facebook_user_id = $1', [id]);
+          if (users.rows.length > 0) {
+            const final_user_id = users.rows[0].id; // merge all users into first one
+            const placeholders = [];
+            for (let i = 0; i < users.rows.length; i += 1) {
+              placeholders.push(`$${i + 2}`);
+            }
+            await pool.query(`update phrases set user_id = $1 where user_id in (${placeholders.join(', ')})`, [user_id, ...users.rows.map((row) => row.id)]);
+            // remove all other users
+            await pool.query('delete from users where facebook_user_id = $1 and id != $2', [id, final_user_id]);
+            await sendPhrases({ user_id: final_user_id, res });
           } else {
-            await pool.query('insert into users (id, facebook_user_id) values ($1, $2)', [user_id, id]);
+            // no user with this facebook account - create one
+            const new_user_id = Math.random()
+              .toString(36)
+              .slice(2);
+            await pool.query('insert into users (id, facebook_user_id) values ($1, $2)', [new_user_id, id]);
+            res.json({ user_id: new_user_id, phrases: [] });
           }
-          await sendPhrases({ user_id, res });
         }
-      } else {
-        // login with facebook
-        users = await pool.query('select id from users where facebook_user_id = $1', [id]);
-        if (users.rows.length > 0) {
-          const final_user_id = users.rows[0].id; // merge all users into first one
-          await Phrase.updateMany(
-            { user_id: { $in: users.map(e => e.user_id) } },
-            { $set: { user_id: final_user_id } }
-          );
-          const placeholders = [];
-          for (let i = 0; i < users.rows.length; i += 1) {
-            placeholders.push(`$${i + 2}`);
-          }
-          await pool.query(`update phrases set user_id = $1 where user_id in (${placeholders.join(', ')})`, [user_id, ...users.rows.map((row) => row.id)]);
-          // remove all other users
-          await pool.query('delete from users where facebook_user_id = $1 and id != $2', [id, final_user_id]);
-          await sendPhrases({ user_id: final_user_id, res });
-        } else {
-          // no user with this facebook account - create one
-          const new_user_id = Math.random()
-            .toString(36)
-            .slice(2);
-          await pool.query('insert into users (id, facebook_user_id) values ($1, $2)', [new_user_id, id]);
-          res.json({ user_id: new_user_id, phrases: [] });
-        }
+      catch (error) {
+        res.status(500).json({});
       }
     }
   });

@@ -38,6 +38,7 @@
     "url": "^0.11.0"
   },
   "devDependencies": {
+    "eslint": "^7.24.0",
     "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
     "prettify": "^0.1.7"

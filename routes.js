@@ -82,7 +82,7 @@ router.get('/connect_facebook', function(req, res) {
             for (let i = 0; i < users.rows.length; i += 1) {
               placeholders.push(`$${i + 2}`);
             }
-            await pool.query(`update phrases set user_id = $1 where user_id in (${placeholders.join(', ')})`, [user_id, ...users.rows.map((row) => row.id)]);
+            await pool.query(`update phrases set user_id = $1 where user_id in (${placeholders.join(', ')})`, [final_user_id, ...users.rows.map((row) => row.id)]);
             // remove all other users
             await pool.query('delete from users where facebook_user_id = $1 and id != $2', [id, final_user_id]);
             await sendPhrases({ user_id: final_user_id, res });

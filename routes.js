@@ -174,7 +174,6 @@ router.post('/', async (req, res) => {
 
 router.delete('/', async (req, res) => {
   const { uri } = req.query;
-  const err = await Phrase.deleteOne({ uri });
   try {
     await pool.query('delete from phrases where uri = $1', [uri]);
     res.status(200).json({});
@@ -192,7 +191,6 @@ router.get('/share', function(req, res) {
 router.delete('/dictionary', async (req, res) => {
   const { id, user_id } = req.query;
   try {
-    await Phrase.deleteMany({ user_id, dictionary: id });
     await pool.query('delete from phrases where user_id = $1 and dictionary = $2', [user_id, id]);
     res.status(200).json({});
   } catch (error) {

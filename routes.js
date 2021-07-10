@@ -13,6 +13,20 @@ const pool = new Pool({ connectionString: config.DATABASE_URL, ssl: { rejectUnau
 
 const DEFAULT_DICTIONARY_NAME = 'Phrazes';
 
+async function pingCheze() {
+  try {
+    await axios.get(process.env.PING_URL_CHEZE);
+    setTimeout(pingCheze, parseInt(process.env.PING_INTERVAL_MIN) * 60 * 1000);
+  } catch (error) {
+    await axios.post(process.env.SLACK_CHEZE_PING_BOT_URL, {
+      text: `API Чем заняться лежит: ${error}`,
+    });
+    setTimeout(pingCheze, parseInt(process.env.PING_INTERVAL_MIN_IF_FAILED) * 60 * 1000);
+  }
+}
+
+pingCheze();
+
 async function sendPhrases({ user_id, dictionary, res }) {
   const result = await pool.query('select * from users where id = $1', [user_id]);
   if (result.rows.length === 0) {

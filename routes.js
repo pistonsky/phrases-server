@@ -14,14 +14,27 @@ const pool = new Pool({ connectionString: config.DATABASE_URL, ssl: { rejectUnau
 
 const DEFAULT_DICTIONARY_NAME = 'Phrazes';
 
+let pingChezeFailed = false;
+
 async function pingCheze() {
   try {
     await axios.get(process.env.PING_URL_CHEZE);
+    if (pingChezeFailed) {
+      try {
+        await axios.post(process.env.SLACK_CHEZE_PING_BOT_URL, {
+          text: `✅ API Чем заняться поднялся!`,
+        });
+      } catch (slackError) {
+        // do nothing
+      }
+    }
+    pingChezeFailed = false;
     setTimeout(pingCheze, parseInt(process.env.PING_INTERVAL_MIN) * 60 * 1000);
   } catch (error) {
     await axios.post(process.env.SLACK_CHEZE_PING_BOT_URL, {
-      text: `API Чем заняться лежит: ${error}\nurl: ${process.env.PING_URL_CHEZE}`,
+      text: `🚨 API Чем заняться лежит: ${error}\nurl: ${process.env.PING_URL_CHEZE}`,
     });
+    pingChezeFailed = true;
     setTimeout(pingCheze, parseInt(process.env.PING_INTERVAL_MIN_IF_FAILED) * 60 * 1000);
   }
 }

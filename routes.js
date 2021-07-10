@@ -49,20 +49,22 @@ async function pingParkly() {
       },
     };
     const result = await axios.get(process.env.PING_URL_PARKLY, options);
-    console.log(result);
-    if (!result) {
+    if (result.status !== 200) {
+      throw new Error(`Статус код ${result.status}`);
+    }
+    if (!result.data) {
       throw new Error('Некорректный формат ответа');
     }
-    if (!result.items) {
+    if (!result.data.items) {
       throw new Error('В ответе нет ключа items');
     }
-    if (!result.stories) {
+    if (!result.data.stories) {
       throw new Error('В ответе нет ключа stories');
     }
-    if (!(result.items instanceof Array)) {
+    if (!(result.data.items instanceof Array)) {
       throw new Error('Ключ items имеет некорректный формат (не массив)');
     }
-    if (!(result.stories instanceof Array)) {
+    if (!(result.data.stories instanceof Array)) {
       throw new Error('Ключ stories имеет некорректный формат (не массив)');
     }
     if (pingParklyFailed) {

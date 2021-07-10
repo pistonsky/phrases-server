@@ -20,7 +20,7 @@ async function pingCheze() {
     setTimeout(pingCheze, parseInt(process.env.PING_INTERVAL_MIN) * 60 * 1000);
   } catch (error) {
     await axios.post(process.env.SLACK_CHEZE_PING_BOT_URL, {
-      text: `API Чем заняться лежит: ${error}`,
+      text: `API Чем заняться лежит: ${error}\nurl: ${process.env.PING_URL_CHEZE}`,
     });
     setTimeout(pingCheze, parseInt(process.env.PING_INTERVAL_MIN_IF_FAILED) * 60 * 1000);
   }

@@ -15,6 +15,7 @@ const pool = new Pool({ connectionString: config.DATABASE_URL, ssl: { rejectUnau
 const DEFAULT_DICTIONARY_NAME = 'Phrazes';
 
 let pingChezeFailed = false;
+let pingParklyFailed = false;
 
 async function pingCheze() {
   try {
@@ -39,7 +40,46 @@ async function pingCheze() {
   }
 }
 
+async function pingParkly() {
+  try {
+    const result = await axios.get(process.env.PING_URL_PARKLY);
+    if (!result) {
+      throw new Error('Некорректный формат ответа');
+    }
+    if (!result.items) {
+      throw new Error('В ответе нет ключа items');
+    }
+    if (!result.stories) {
+      throw new Error('В ответе нет ключа stories');
+    }
+    if (!(result.items instanceof Array)) {
+      throw new Error('Ключ items имеет некорректный формат (не массив)');
+    }
+    if (!(result.stories instanceof Array)) {
+      throw new Error('Ключ stories имеет некорректный формат (не массив)');
+    }
+    if (pingParklyFailed) {
+      try {
+        await axios.post(process.env.SLACK_PARKLY_PING_BOT_URL, {
+          text: `✅ api.parkly.ru поднялся!`,
+        });
+      } catch (slackError) {
+        // do nothing
+      }
+    }
+    pingParklyFailed = false;
+    setTimeout(pingParkly, parseInt(process.env.PING_INTERVAL_MIN) * 60 * 1000);
+  } catch (error) {
+    await axios.post(process.env.SLACK_PARKLY_PING_BOT_URL, {
+      text: `🚨 api.parkly.ru лежит: ${error}\nurl: ${process.env.PING_URL_PARKLY}`,
+    });
+    pingParklyFailed = true;
+    setTimeout(pingParkly, parseInt(process.env.PING_INTERVAL_MIN_IF_FAILED) * 60 * 1000);
+  }
+}
+
 pingCheze();
+pingParkly();
 
 async function sendPhrases({ user_id, dictionary, res }) {
   const result = await pool.query('select * from users where id = $1', [user_id]);

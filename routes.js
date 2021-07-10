@@ -42,7 +42,13 @@ async function pingCheze() {
 
 async function pingParkly() {
   try {
-    const result = await axios.get(process.env.PING_URL_PARKLY);
+    const options = {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    };
+    const result = await axios.get(process.env.PING_URL_PARKLY, options);
     if (!result) {
       throw new Error('Некорректный формат ответа');
     }

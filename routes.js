@@ -49,6 +49,7 @@ async function pingParkly() {
       },
     };
     const result = await axios.get(process.env.PING_URL_PARKLY, options);
+    console.log(result);
     if (!result) {
       throw new Error('Некорректный формат ответа');
     }

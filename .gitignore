@@ -2,5 +2,7 @@ node_modules
 uploads
 config/dev.js
 
+.env
+
 # Sublime Text
 *.sublime-*

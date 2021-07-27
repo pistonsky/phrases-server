@@ -10,7 +10,10 @@ var { DEMO_USER_ID } = require('./config');
 
 const router = new Router();
 
-const pool = new Pool({ connectionString: config.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+const pool = new Pool({
+  connectionString: config.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
 const DEFAULT_DICTIONARY_NAME = 'Phrazes';
 
@@ -67,6 +70,141 @@ async function pingParkly() {
     if (!(result.data.stories instanceof Array)) {
       throw new Error('Ключ stories имеет некорректный формат (не массив)');
     }
+    let optionsCorrect = true;
+    let badgesCorrect = true;
+    let badgeTitle = true;
+    let badgeColor = true;
+    let pricesCorrect = true;
+    let priceModePresent = true;
+    let priceModeValidValue = true;
+    let priceTopTextCorrect = true;
+    let priceTopTextValueCorrect = true;
+    let priceTopTextSuffixCorrect = true;
+    let photosCorrect = true;
+    let photoIdCorrect = true;
+    let photoPublicPathCorrect = true;
+    result.data.items.forEach((item) => {
+      if (!(item.options instanceof Array)) {
+        optionsCorrect = false;
+      }
+      if (!(item.badges instanceof Array)) {
+        badgesCorrect = false;
+      } else {
+        item.badges.forEach((badge) => {
+          if (!badge.title) {
+            badgeTitle = false;
+          }
+          if (!badge.color) {
+            badgeColor = false;
+          }
+        });
+      }
+      if (!(item.prices instanceof Array)) {
+        pricesCorrect = false;
+      } else {
+        item.prices.forEach((price) => {
+          if (!price.mode) {
+            priceModePresent = false;
+          } else if (price.mode !== 'h' && price.mode !== 'd' && price.mode !== 'm') {
+            priceModeValidValue = false;
+          }
+          if (!price.topText) {
+            priceTopTextCorrect = false;
+          } else {
+            if (!price.topText.value) {
+              priceTopTextValueCorrect = false;
+            }
+            if (typeof price.topText.suffix !== 'string') {
+              priceTopTextSuffixCorrect = false;
+            }
+          }
+        });
+      }
+      if (!(item.photos instanceof Array)) {
+        photosCorrect = false;
+      } else {
+        item.photos.forEach((photo) => {
+          if (!photo.id) {
+            photoIdCorrect = false;
+          }
+          if (!photo.public_path) {
+            photoPublicPathCorrect = false;
+          }
+        });
+      }
+    });
+    if (
+      !optionsCorrect ||
+      !badgesCorrect ||
+      !badgeTitle ||
+      !badgeColor ||
+      !pricesCorrect ||
+      !priceModePresent ||
+      !priceModeValidValue ||
+      !priceTopTextCorrect ||
+      !priceTopTextValueCorrect ||
+      !priceTopTextSuffixCorrect ||
+      !photosCorrect ||
+      !photoIdCorrect ||
+      !photoPublicPathCorrect
+    ) {
+      const error = {
+        optionsCorrect,
+        badgesCorrect,
+        badgeTitle,
+        badgeColor,
+        pricesCorrect,
+        priceModePresent,
+        priceModeValidValue,
+        priceTopTextCorrect,
+        priceTopTextValueCorrect,
+        priceTopTextSuffixCorrect,
+        photosCorrect,
+        photoIdCorrect,
+        photoPublicPathCorrect,
+      };
+      let message = [];
+      if (!optionsCorrect) {
+        message.push('Ключ options в item имеет некорректный формат (не массив)');
+      }
+      if (!badgesCorrect) {
+        message.push('Ключ badges в item имеет некорректный формат (не массив)');
+      }
+      if (!badgeTitle) {
+        message.push('В каком-то (или всех) badge нет title');
+      }
+      if (!badgeColor) {
+        message.push('В каком-то (или всех) badge нет color');
+      }
+      if (!pricesCorrect) {
+        message.push('Ключ prices в item имеет некорректный формат (не массив)');
+      }
+      if (!priceModePresent) {
+        message.push('В каком-то (или всех) price нет mode');
+      }
+      if (!priceModeValidValue) {
+        message.push('Ключ mode в item/price имеет некорректный формат (не h/d/m)');
+      }
+      if (!priceTopTextCorrect) {
+        message.push('В каком-то (или всех) item/price нет topText');
+      }
+      if (!priceTopTextValueCorrect) {
+        message.push('В каком-то (или всех) item/price/topText нет value');
+      }
+      if (!priceTopTextSuffixCorrect) {
+        message.push('В каком-то (или всех) item/price/topText тип suffix не строка');
+      }
+      if (!photosCorrect) {
+        message.push('Ключ photos в item имеет некорректный формат (не массив)');
+      }
+      if (!photoIdCorrect) {
+        message.push('В каком-то (или всех) item/photos нет id');
+      }
+      if (!photoPublicPathCorrect) {
+        message.push('В каком-то (или всех) item/photos нет public_path');
+      }
+      throw new Error(message.map((m) => `\n>${m}`).join(''));
+    }
     if (pingParklyFailed) {
       try {
         await axios.post(process.env.SLACK_PARKLY_PING_BOT_URL, {
@@ -101,14 +239,19 @@ async function sendPhrases({ user_id, dictionary, res }) {
     conditions.dictionary = dictionary;
     conditionsQuery.push('dictionary = $2');
   }
-  const phrasesResult = await pool.query(`select id, user_id, dictionary, language, original, translated, uri from phrases where ${conditionsQuery.join(' and ')}`, dictionary ? [user_id, dictionary] : [user_id]);
+  const phrasesResult = await pool.query(
+    `select id, user_id, dictionary, language, original, translated, uri from phrases where ${conditionsQuery.join(
+      ' and ',
+    )}`,
+    dictionary ? [user_id, dictionary] : [user_id],
+  );
   res.json({
     ...conditions,
     phrases: phrasesResult.rows,
   });
 }
 
-router.get('/connect_facebook', function(req, res) {
+router.get('/connect_facebook', function (req, res) {
   const { facebook_token, user_id } = req.query;
   graph.get('me?access_token=' + facebook_token, async (err, response) => {
     if (err) {
@@ -138,7 +281,10 @@ router.get('/connect_facebook', function(req, res) {
             for (let i = 0; i < linked_users.rows.length; i += 1) {
               placeholders.push(`$${i + 2}`);
             }
-            await pool.query(`update phrases set user_id = $1 where user_id in (${placeholders.join(', ')})`, linked_users.rows.map((row) => row.id));
+            await pool.query(
+              `update phrases set user_id = $1 where user_id in (${placeholders.join(', ')})`,
+              linked_users.rows.map((row) => row.id),
+            );
             // remove all other users
             await pool.query('delete from users where facebook_user_id = $1 and id != $2', [id, user_id]);
             // make sure current user is connected to facebook
@@ -159,15 +305,16 @@ router.get('/connect_facebook', function(req, res) {
             for (let i = 0; i < users.rows.length; i += 1) {
               placeholders.push(`$${i + 2}`);
             }
-            await pool.query(`update phrases set user_id = $1 where user_id in (${placeholders.join(', ')})`, [final_user_id, ...users.rows.map((row) => row.id)]);
+            await pool.query(`update phrases set user_id = $1 where user_id in (${placeholders.join(', ')})`, [
+              final_user_id,
+              ...users.rows.map((row) => row.id),
+            ]);
             // remove all other users
             await pool.query('delete from users where facebook_user_id = $1 and id != $2', [id, final_user_id]);
             await sendPhrases({ user_id: final_user_id, res });
           } else {
             // no user with this facebook account - create one
-            const new_user_id = Math.random()
-              .toString(36)
-              .slice(2);
+            const new_user_id = Math.random().toString(36).slice(2);
             await pool.query('insert into users (id, facebook_user_id) values ($1, $2)', [new_user_id, id]);
             res.json({ user_id: new_user_id, phrases: [] });
           }
@@ -193,14 +340,7 @@ router.get(['/', '/phrazes'], async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const {
-    user_id,
-    dictionary,
-    language,
-    original,
-    translated,
-    uri
-  } = req.query;
+  const { user_id, dictionary, language, original, translated, uri } = req.query;
   const users = await pool.query('select id from users where id = $1', [user_id]);
   if (users.rows.length === 0) {
     await pool.query('insert into users (id) values ($1)', [user_id]);
@@ -224,7 +364,10 @@ router.post('/', async (req, res) => {
       columns.push(`language = $${3 + columns.length}`);
       values.push(language);
     }
-    const updateResult = await pool.query(`update phrases set ${columns.join(', ')} where user_id = $1 and uri = $2`, values);
+    const updateResult = await pool.query(
+      `update phrases set ${columns.join(', ')} where user_id = $1 and uri = $2`,
+      values,
+    );
     if (updateResult.rowCount > 0) {
       res.status(200).json({ updated: updateResult.rowCount });
     } else {
@@ -234,9 +377,12 @@ router.post('/', async (req, res) => {
         language,
         original,
         translated,
-        uri
+        uri,
       };
-      const insertResult = await pool.query(`insert into phrases (user_id, dictionary, language, original, translated, uri) values ($1, $2, $3, $4, $5, $6)`, [user_id, dictionary || DEFAULT_DICTIONARY_NAME, language, original, translated, uri]);
+      const insertResult = await pool.query(
+        `insert into phrases (user_id, dictionary, language, original, translated, uri) values ($1, $2, $3, $4, $5, $6)`,
+        [user_id, dictionary || DEFAULT_DICTIONARY_NAME, language, original, translated, uri],
+      );
       if (insertResult.rowCount > 0) {
         res.status(200).json(phrase);
       } else {
@@ -260,7 +406,7 @@ router.delete('/', async (req, res) => {
   }
 });
 
-router.get('/share', function(req, res) {
+router.get('/share', function (req, res) {
   const query = url.parse(req.url).query;
   res.redirect('phrazesapp://+' + query);
 });
@@ -324,7 +470,10 @@ router.get('/privacy/ru', async (req, res) => {
 router.get('*', async (req, res) => {
   const query = qs.parse(req.params[0].replace('/phrazesapp://+', ''));
   if (query.dictionary) {
-    const result = await pool.query('select count(*) as count from phrases where user_id = $1 and dictionary = $2', [query.user_id, query.dictionary]);
+    const result = await pool.query('select count(*) as count from phrases where user_id = $1 and dictionary = $2', [
+      query.user_id,
+      query.dictionary,
+    ]);
     res.status(200).send(`
       <html>
         <head>

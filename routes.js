@@ -226,7 +226,7 @@ async function pingParkly() {
 }
 
 pingCheze();
-pingParkly();
+// pingParkly();
 
 async function sendPhrases({ user_id, dictionary, res }) {
   const result = await pool.query('select * from users where id = $1', [user_id]);

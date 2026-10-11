@@ -1,5 +1,6 @@
-const mongoose = require('mongoose');
-const { Schema } = require('mongoose');
+import mongoose from 'mongoose';
+
+const { Schema } = mongoose;
 
 const phrasesSchema = new Schema({
   user_id: String,
@@ -7,7 +8,7 @@ const phrasesSchema = new Schema({
   language: String,
   original: String,
   translated: String,
-  uri: String
+  uri: String,
 });
 
 mongoose.model('phrases', phrasesSchema);

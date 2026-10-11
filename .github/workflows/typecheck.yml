@@ -13,5 +13,5 @@ jobs:
         with:
           node-version: 20
           cache: yarn
-      - run: yarn install --frozen-lockfile --ignore-engines
-      - run: yarn typecheck --ignore-engines
+      - run: yarn --ignore-engines install --frozen-lockfile
+      - run: yarn --ignore-engines typecheck

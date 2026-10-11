@@ -1,12 +1,13 @@
-const Router = require('express-promise-router');
-var path = require('path');
-var url = require('url');
-var qs = require('qs');
-const { Pool } = require('pg');
-var graph = require('fbgraph');
-const axios = require('axios');
-var config = require('./config/keys');
-var { DEMO_USER_ID } = require('./config');
+import path from 'path';
+import url from 'url';
+import qs from 'qs';
+import { Pool, QueryResult } from 'pg';
+import axios from 'axios';
+import Router from 'express-promise-router';
+import graph from 'fbgraph';
+import type { Request, Response } from 'express';
+import config from './config/keys';
+import { DEMO_USER_ID } from './config';
 
 const router = new Router();
 
@@ -17,15 +18,22 @@ const pool = new Pool({
 
 const DEFAULT_DICTIONARY_NAME = 'Phrazes';
 
+// tsc emits this file to dist/; the CRA client build stays at the repo root.
+const projectRoot = path.join(__dirname, '..');
+
 let pingChezeFailed = false;
 let pingParklyFailed = false;
 
-async function pingCheze() {
+function env(name: string): string {
+  return process.env[name] as string;
+}
+
+async function pingCheze(): Promise<void> {
   try {
-    await axios.get(process.env.PING_URL_CHEZE);
+    await axios.get(env('PING_URL_CHEZE'));
     if (pingChezeFailed) {
       try {
-        await axios.post(process.env.SLACK_CHEZE_PING_BOT_URL, {
+        await axios.post(env('SLACK_CHEZE_PING_BOT_URL'), {
           text: `✅ API Чем заняться поднялся!`,
         });
       } catch (slackError) {
@@ -33,17 +41,17 @@ async function pingCheze() {
       }
     }
     pingChezeFailed = false;
-    setTimeout(pingCheze, parseInt(process.env.PING_INTERVAL_MIN) * 60 * 1000);
+    setTimeout(pingCheze, parseInt(env('PING_INTERVAL_MIN')) * 60 * 1000);
   } catch (error) {
-    await axios.post(process.env.SLACK_CHEZE_PING_BOT_URL, {
+    await axios.post(env('SLACK_CHEZE_PING_BOT_URL'), {
       text: `🚨 API Чем заняться лежит: ${error}\nurl: ${process.env.PING_URL_CHEZE}`,
     });
     pingChezeFailed = true;
-    setTimeout(pingCheze, parseInt(process.env.PING_INTERVAL_MIN_IF_FAILED) * 60 * 1000);
+    setTimeout(pingCheze, parseInt(env('PING_INTERVAL_MIN_IF_FAILED')) * 60 * 1000);
   }
 }
 
-async function pingParkly() {
+async function pingParkly(): Promise<void> {
   try {
     const options = {
       headers: {
@@ -51,7 +59,7 @@ async function pingParkly() {
         'Content-Type': 'application/json',
       },
     };
-    const result = await axios.get(process.env.PING_URL_PARKLY, options);
+    const result = await axios.get(env('PING_URL_PARKLY'), options);
     if (result.status !== 200) {
       throw new Error(`Статус код ${result.status}`);
     }
@@ -83,7 +91,7 @@ async function pingParkly() {
     let photosCorrect = true;
     let photoIdCorrect = true;
     let photoPublicPathCorrect = true;
-    result.data.items.forEach((item) => {
+    result.data.items.forEach((item: ParklyItem) => {
       if (!(item.options instanceof Array)) {
         optionsCorrect = false;
       }
@@ -163,7 +171,7 @@ async function pingParkly() {
         photoIdCorrect,
         photoPublicPathCorrect,
       };
-      let message = [];
+      const message = [];
       if (!optionsCorrect) {
         message.push('Ключ options в item имеет некорректный формат (не массив)');
       }
@@ -207,7 +215,7 @@ async function pingParkly() {
     }
     if (pingParklyFailed) {
       try {
-        await axios.post(process.env.SLACK_PARKLY_PING_BOT_URL, {
+        await axios.post(env('SLACK_PARKLY_PING_BOT_URL'), {
           text: `✅ api.parkly.ru поднялся!`,
         });
       } catch (slackError) {
@@ -215,25 +223,53 @@ async function pingParkly() {
       }
     }
     pingParklyFailed = false;
-    setTimeout(pingParkly, parseInt(process.env.PING_INTERVAL_MIN) * 60 * 1000);
+    setTimeout(pingParkly, parseInt(env('PING_INTERVAL_MIN')) * 60 * 1000);
   } catch (error) {
-    await axios.post(process.env.SLACK_PARKLY_PING_BOT_URL, {
+    await axios.post(env('SLACK_PARKLY_PING_BOT_URL'), {
       text: `🚨 api.parkly.ru лежит: ${error}\nurl: ${process.env.PING_URL_PARKLY}`,
     });
     pingParklyFailed = true;
-    setTimeout(pingParkly, parseInt(process.env.PING_INTERVAL_MIN_IF_FAILED) * 60 * 1000);
+    setTimeout(pingParkly, parseInt(env('PING_INTERVAL_MIN_IF_FAILED')) * 60 * 1000);
   }
 }
 
 pingCheze();
 // pingParkly();
 
-async function sendPhrases({ user_id, dictionary, res }) {
+interface PhraseQuery {
+  user_id?: string;
+  dictionary?: string;
+  language?: string;
+  original?: string;
+  translated?: string;
+  uri?: string;
+  facebook_token?: string;
+  id?: string;
+  old_name?: string;
+  new_name?: string;
+}
+
+interface ParklyItem {
+  options?: unknown;
+  badges?: { title?: string; color?: string }[];
+  prices?: { mode?: string; topText?: { value?: string; suffix?: unknown } }[];
+  photos?: { id?: string; public_path?: string }[];
+}
+
+async function sendPhrases({
+  user_id,
+  dictionary,
+  res,
+}: {
+  user_id: string;
+  dictionary?: string;
+  res: Response;
+}): Promise<void> {
   const result = await pool.query('select * from users where id = $1', [user_id]);
   if (result.rows.length === 0) {
     await pool.query('insert into users (id) values ($1)', [user_id]);
   }
-  let conditions = { user_id };
+  const conditions: { user_id: string; dictionary?: string } = { user_id };
   const conditionsQuery = ['user_id = $1'];
   if (dictionary) {
     conditions.dictionary = dictionary;
@@ -251,13 +287,17 @@ async function sendPhrases({ user_id, dictionary, res }) {
   });
 }
 
-router.get('/connect_facebook', function (req, res) {
-  const { facebook_token, user_id } = req.query;
+function savedRowCount(result: QueryResult): number {
+  return result.rowCount ?? 0;
+}
+
+router.get('/connect_facebook', function (req: Request, res: Response) {
+  const { facebook_token, user_id } = req.query as PhraseQuery;
   graph.get('me?access_token=' + facebook_token, async (err, response) => {
     if (err) {
       res.status(503).send();
     } else {
-      const { name, id } = response;
+      const { id } = response;
       let users;
       try {
         if (user_id) {
@@ -326,27 +366,27 @@ router.get('/connect_facebook', function (req, res) {
   });
 });
 
-router.get('/demo', async (req, res) => {
+router.get('/demo', async (req: Request, res: Response) => {
   await sendPhrases({ user_id: DEMO_USER_ID, res });
 });
 
-router.get(['/', '/phrazes'], async (req, res) => {
-  const { user_id, dictionary } = req.query;
+router.get(['/', '/phrazes'], async (req: Request, res: Response) => {
+  const { user_id, dictionary } = req.query as PhraseQuery;
   if (user_id) {
     await sendPhrases({ user_id, dictionary, res });
   } else {
-    res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
+    res.sendFile(path.join(projectRoot, 'client', 'build', 'index.html'));
   }
 });
 
-router.post('/', async (req, res) => {
-  const { user_id, dictionary, language, original, translated, uri } = req.query;
+router.post('/', async (req: Request, res: Response) => {
+  const { user_id, dictionary, language, original, translated, uri } = req.query as PhraseQuery;
   const users = await pool.query('select id from users where id = $1', [user_id]);
   if (users.rows.length === 0) {
     await pool.query('insert into users (id) values ($1)', [user_id]);
   }
   try {
-    const values = [user_id, uri];
+    const values: unknown[] = [user_id, uri];
     const columns = [];
     if (original) {
       columns.push(`original = $${3 + columns.length}`);
@@ -368,7 +408,7 @@ router.post('/', async (req, res) => {
       `update phrases set ${columns.join(', ')} where user_id = $1 and uri = $2`,
       values,
     );
-    if (updateResult.rowCount > 0) {
+    if (savedRowCount(updateResult) > 0) {
       res.status(200).json({ updated: updateResult.rowCount });
     } else {
       const phrase = {
@@ -383,7 +423,7 @@ router.post('/', async (req, res) => {
         `insert into phrases (user_id, dictionary, language, original, translated, uri) values ($1, $2, $3, $4, $5, $6)`,
         [user_id, dictionary || DEFAULT_DICTIONARY_NAME, language, original, translated, uri],
       );
-      if (insertResult.rowCount > 0) {
+      if (savedRowCount(insertResult) > 0) {
         res.status(200).json(phrase);
       } else {
         res.status(500).json({ error: 'Could not save phrase', phrase });
@@ -395,8 +435,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.delete('/', async (req, res) => {
-  const { uri } = req.query;
+router.delete('/', async (req: Request, res: Response) => {
+  const { uri } = req.query as PhraseQuery;
   try {
     await pool.query('delete from phrases where uri = $1', [uri]);
     res.status(200).json({});
@@ -406,13 +446,13 @@ router.delete('/', async (req, res) => {
   }
 });
 
-router.get('/share', function (req, res) {
+router.get('/share', function (req: Request, res: Response) {
   const query = url.parse(req.url).query;
   res.redirect('phrazesapp://+' + query);
 });
 
-router.delete('/dictionary', async (req, res) => {
-  const { id, user_id } = req.query;
+router.delete('/dictionary', async (req: Request, res: Response) => {
+  const { id, user_id } = req.query as PhraseQuery;
   try {
     await pool.query('delete from phrases where user_id = $1 and dictionary = $2', [user_id, id]);
     res.status(200).json({});
@@ -422,8 +462,8 @@ router.delete('/dictionary', async (req, res) => {
   }
 });
 
-router.put('/dictionary', async (req, res) => {
-  const { old_name, new_name, user_id } = req.query;
+router.put('/dictionary', async (req: Request, res: Response) => {
+  const { old_name, new_name } = req.query as PhraseQuery;
   try {
     const result = await pool.query('update phrases set dictionary = $1 where dictionary = $2', [new_name, old_name]);
     res.status(200).json({ updated: result.rowCount });
@@ -433,7 +473,7 @@ router.put('/dictionary', async (req, res) => {
   }
 });
 
-router.get('/privacy', async (req, res) => {
+router.get('/privacy', async (req: Request, res: Response) => {
   res.status(200).send(`
     <html>
       <head>
@@ -450,7 +490,7 @@ router.get('/privacy', async (req, res) => {
   `);
 });
 
-router.get('/privacy/ru', async (req, res) => {
+router.get('/privacy/ru', async (req: Request, res: Response) => {
   res.status(200).send(`
     <html>
       <head>
@@ -467,8 +507,8 @@ router.get('/privacy/ru', async (req, res) => {
   `);
 });
 
-router.get('*', async (req, res) => {
-  const query = qs.parse(req.params[0].replace('/phrazesapp://+', ''));
+router.get('*', async (req: Request, res: Response) => {
+  const query = qs.parse(req.params[0].replace('/phrazesapp://+', '')) as PhraseQuery;
   if (query.dictionary) {
     const result = await pool.query('select count(*) as count from phrases where user_id = $1 and dictionary = $2', [
       query.user_id,
@@ -536,4 +576,4 @@ router.get('*', async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;
